@@ -1,0 +1,149 @@
+import {
+  getRandomValueRange,
+  render,
+  unrender,
+  Position, createElement
+} from './utils';
+import {
+  FILTER_NAME_LIST,
+  DAY_LIST,
+  WAYPOINT_TYPE_LIST,
+  WAYPOINT_DESTINATION_LIST,
+  WAYPOINT_OFFER_LIST,
+  getPointType,
+  getDestionation,
+  getTimeStart,
+  getTimeEnd,
+  getDuration,
+  getPrice,
+  getPhotoList,
+  getOfferCheckedIndexes,
+  getTextList
+} from './data';
+import TripTabs from './components/trip-tabs';
+import Filter from './components/filter';
+import sort from './components/sort';
+import TripDay from './components/trip-day';
+import NoPoint from './components/no-points';
+import Waypoint from './components/waypoint';
+import WaypointEdit from './components/waypoint-edit';
+
+const tripControlsElem = document.querySelector(`.trip-main__trip-controls`);
+const tripDaysElem = document.querySelector(`.trip-days`);
+const waypointsElem = document.querySelector(`.trip-day__items`);
+const tripEventsElem = document.querySelector(`.trip-events`);
+
+const EVENTS_COUNT = 1;
+
+// Отрисовка меню
+render(tripControlsElem, new TripTabs(), Position.APPEND);
+
+// Отрисовка фильтров
+render(tripControlsElem, createElement(new Filter(FILTER_NAME_LIST, `everything`)), Position.APPEND);
+
+/**
+ * Отрисовка сортировок
+ */
+const renderSort = () => {
+  tripEventsElem.querySelector(`h2`).insertAdjacentHTML(`afterend`, sort());
+};
+
+/**
+ * Отрисовка дней
+ */
+const renderDays = () => {
+  tripDaysElem.innerHTML = ``;
+  if (!DAY_LIST.length) {
+    const noPointComponent = new NoPoint();
+    tripEventsElem.appendChild(noPointComponent.render());
+  }
+  DAY_LIST.forEach(function (day, dayIndex) {
+    const eventCount = getRandomValueRange(0, EVENTS_COUNT);
+    if (eventCount) {
+      const tripDayComponent = new TripDay(day, dayIndex);
+
+      tripDaysElem.appendChild(tripDayComponent.render());
+      generateWaypoints(tripDayComponent.element.querySelector(`.trip-events__list`), eventCount);
+    }
+  });
+};
+
+/**
+ * Обработчики события для фильтров
+ */
+/*
+const addFiltersEvents = () => {
+  const tripFilterElem = document.querySelector(`.trip-filters__filter`);
+
+  tripFilterElem.addEventListener(`click`, () => {
+    generateWaypoints(waypointsElem, getRandomValueRange(0, EVENTS_COUNT));
+  });
+};
+*/
+
+/**
+ * Заменяетодин компонент другим
+ * @param {Element} containerElem
+ * @param {object} newComponent
+ * @param {object} oldComponent
+ */
+const replaceComponents = (containerElem, newComponent, oldComponent) => {
+  newComponent.render();
+  containerElem.replaceChild(newComponent.element, oldComponent.element);
+  oldComponent.unrender();
+};
+
+/**
+ * Создание заданного числа маршрутов
+ * @param {Element} containerElem
+ * @param {int} pointsCount
+ */
+const generateWaypoints = (containerElem, pointsCount) => {
+  containerElem.innerHTML = ``;
+
+  for (let i = 1; i <= pointsCount; i++) {
+    const waypointObj = {
+      price: getPrice(),
+      timeStart: getTimeStart(),
+      timeEnd: getTimeEnd(),
+      id: 0,
+      isFavorite: false,
+      offerCheckedIndexes: getOfferCheckedIndexes(),
+      offerList: WAYPOINT_OFFER_LIST,
+      destination: getDestionation(),
+      destinationList: WAYPOINT_DESTINATION_LIST,
+      type: getPointType(),
+      typeList: WAYPOINT_TYPE_LIST,
+      duration: getDuration(),
+      photoList: getPhotoList(),
+      textList: getTextList()
+    };
+
+    const waypointComponent = new Waypoint(waypointObj);
+    const waypointEditComponent = new WaypointEdit(waypointObj);
+
+    containerElem.appendChild(waypointComponent.render());
+
+    waypointComponent.onClick = () => {
+      replaceComponents(containerElem, waypointEditComponent, waypointComponent);
+    };
+
+    waypointEditComponent.onSubmit = () => {
+      replaceComponents(containerElem, waypointComponent, waypointEditComponent);
+    };
+
+    waypointEditComponent.onReset = () => {
+      replaceComponents(containerElem, waypointComponent, waypointEditComponent);
+    };
+
+    waypointEditComponent.onKeyPress = () => {
+      replaceComponents(containerElem, waypointComponent, waypointEditComponent);
+    };
+  }
+};
+
+// Отрисовываем сортировки
+// renderSort();
+
+// Отрисовываем дни
+// renderDays();
