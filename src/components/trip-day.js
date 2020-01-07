@@ -9,7 +9,7 @@ export default class TripDay extends AbstractComponent {
 
   getTemplate() {
     return `
-      <li class="trip-days__item  day">
+      <li class="trip-days__item day">
         <div class="day__info">
           <span class="day__counter">${this._dayCounter ? this._dayCounter : ``}</span>
           <time class="day__date" datetime="${this._dayDate}">${this._dayDate}</time>
